@@ -9,7 +9,7 @@ FROM transactions.company
 ORDER BY company_name;
     
     
--- Ejercicio 3.
+-- Ejercicio 3..
 -- Desde la sección de marketing te solicitan que les pases un listado de los países que están realizando compras
 SELECT DISTINCT company.country
 FROM transactions.company
