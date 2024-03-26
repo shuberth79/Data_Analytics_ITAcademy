@@ -9,7 +9,7 @@ FROM transactions.company
 ORDER BY company_name;
     
     
--- Ejercicio 3..
+-- Ejercicio 3.
 -- Desde la sección de marketing te solicitan que les pases un listado de los países que están realizando compras
 SELECT DISTINCT company.country
 FROM transactions.company
@@ -18,7 +18,8 @@ JOIN transactions.transaction ON transaction.company_id = company.id;
 SELECT DISTINCT company.country, SUM(amount) AS total_venta
 FROM transactions.company
 JOIN transactions.transaction ON transaction.company_id = company.id
-GROUP BY company.country;
+GROUP BY company.country
+order by total_venta desc;
 
 
 -- Ejercicio 4
