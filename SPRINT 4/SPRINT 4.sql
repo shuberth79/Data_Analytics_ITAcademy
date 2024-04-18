@@ -3,155 +3,183 @@
 
 -- ======================= NIVEL 1 =======================
 
--- Partiendo de algunos archivos CSV diseñarás y crearás tu base de datos.
+/*Partiendo de algunos archivos CSV diseñarás y crearás tu base de datos.
+Descarga los archivos CSV, estudiales y diseña una base de datos con un esquema 
+de estrella que contenga, al menos 4 tablas de las que puedas realizar las 
+siguientes consultas:*/
+
 create database db_SPRINT4;
 
-create table companies (
-company_id varchar(20) PRIMARY KEY not null,
-company_name varchar(255) null,
-phone int(15) null,
-email varchar(150) null,
-country varchar(150) null,
-website varchar(150) null
+CREATE TABLE company (
+	id VARCHAR(20) PRIMARY KEY not null,
+	company_name VARCHAR(255) null,
+	phone VARCHAR(15) null,
+	email VARCHAR(150) null,
+	country VARCHAR(150) null,
+	website VARCHAR(150) null
 );
+
 -- -----------------------------------------------------
 
 create table credit_card (
-id VARCHAR(20) PRIMARY KEY not null,
-user_id INT,
-iban VARCHAR(255) null,
-pan VARCHAR(45) null,
-pin CHAR(4) null,
-cvv CHAR(3) null,
-track1 varchar(255),
-track2 varchar(255),
-expiring_date varchar(255) null
+	id VARCHAR(20) PRIMARY KEY not null,
+	user_id VARCHAR(20),
+	iban VARCHAR(255) null,
+	pan VARCHAR(45) null,
+	pin CHAR(4) null,
+	cvv CHAR(3) null,
+	track1 VARCHAR(255),
+	track2 VARCHAR(255),
+	expiring_date varchar(255) null
 );
-alter table credit_cards
-ADD FOREIGN KEY (user_id) references users(id);
+
 -- -----------------------------------------------------
 
-create table products (
-id int auto_increment PRIMARY KEY not null,
-product_name varchar(100) not null,
-price varchar(10) null,
-colour varchar(100) null,
-weight double null,
-warehouse_id varchar(100) not null
+CREATE TABLE products (
+	id INT PRIMARY KEY not null,
+	product_name VARCHAR(100),
+	price VARCHAR(10),
+	colour VARCHAR(100),
+	weight VARCHAR,
+	warehouse_id VARCHAR(100),
 );
 -- -----------------------------------------------------
 
-create table users (
-id int auto_increment PRIMARY KEY not null,
-name varchar(100),
-surname varchar(100) null,
-phone varchar(150),
-email varchar(150),
-birth_date varchar(100),
-country varchar(150),
-city varchar (150),
-postal_code varchar(100),
-address varchar(255)
+CREATE TABLE users (
+	id INT PRIMARY KEY not null,
+	name VARCHAR(100),
+	surname VARCHAR(100),
+	phone VARCHAR(150),
+	email VARCHAR(150),
+	birth_date VARCHAR(100),
+	country VARCHAR(150),
+	city VARCHAR (150),
+	postal_code VARCHAR(100),
+	address VARCHAR(255)
 );
 -- -----------------------------------------------------
 
 CREATE TABLE transactions (
-id varchar(255) PRIMARY KEY NOT NULL,
-card_id varchar(20) NULL,
-bussiness_id varchar(150) NULL,
-timestamp varchar(150) NOT NULL, 
-amount DECIMAL(10,2) NOT NULL,
-declined TINYINT(1) NOT NULL DEFAULT 0,
-product_ids varchar(20) NOT NULL,
-user_id INT NOT NULL,
-lat varchar(50) NULL,
-longitude varchar(50) NULL);
+	id VARCHAR(255) PRIMARY KEY NOT NULL,
+	card_id VARCHAR(20),
+	bussiness_id VARCHAR(150),
+	timestamp varchar(150) NOT NULL, 
+	amount DECIMAL(10,2) NOT NULL,
+	declined TINYINT(1) NOT NULL DEFAULT 0,
+	product_ids VARCHAR(20) NOT NULL,
+	user_id INT,
+	lat VARCHAR(50),
+	longitude VARCHAR(50)
+);
 
-alter table transactions
-ADD FOREIGN KEY (card_id) references credit_card(id),
-ADD FOREIGN KEY (bussiness_id) references companies(company_id),
-ADD FOREIGN KEY (product_ids) references products(id),
-ADD FOREIGN KEY (user_id) references users(id);
+/*conforme la elaboración de todas las tablas necesarias, se planifica as relaciones
+entre ellas, se establece la indexación con sus respectivos foreign key y evitarnos
+posibles inconvenientes */
+CREATE INDEX idx_company
+	ON transaction(business_id);
+ALTER TABLE company
+	ADD FOREIGN KEY (id) REFERENCES transactions(business_id);
+
+CREATE INDEX idx_credit_card
+	ON transaction(card_id);
+ALTER TABLE credit_card
+	ADD FOREIGN KEY (id) REFERENCES transactions(card_id);
+
+CREATE INDEX idx_users
+	ON transaction(user_id);
+ALTER TABLE users
+	ADD FOREIGN KEY (id) REFERENCES transactions(user_id);
+
+CREATE INDEX idx_products
+	ON transaction(product_ids);
+ALTER TABLE products
+	ADD FOREIGN KEY (id) REFERENCES transactions(product_ids);
+
 
 /*- EJERCICIO 1_____________________________________________________________________
 Realiza una subconsulta que muestre a todos los usuarios con más de 30 transacciones
 utilizando al menos 2 tablas..*/
+SELECT id,
+	concat(NAME, ' ',SURNAME) AS "nombres completos",(
+		SELECT count(transactions.id)
+        FROM transactions
+        WHERE users.id = transactions.user_id) AS transacciones
+FROM users
+WHERE id IN (
+	SELECT user_id
+    FROM transactions
+    GROUP BY user_id
+    HAVING COUNT(id) > 30)
+ORDER BY transacciones DESC;
 
-/*Como una buena practica en la profundizacion en el dominio del manejo de deatos,
+/*Como una buena practica en la profundizacion en el dominio del manejo del lenguaje,
 desgloso algunas opciones*/ 
 
--- Opcion consulta sencilla solo con la tabla transactions
-SELECT user_id, COUNT(*) AS total_transactions    
-FROM transactions
-GROUP BY user_id
-HAVING COUNT(*) > 30
-ORDER BY total_transactions asc;
--- -----------------------------------------------------
-
--- Opcion consulta sencilla solo con la tabla transactions y montos totales de 2 decimales 'round'
-SELECT user_id, COUNT(*) AS total_transactions, ROUND(SUM(amount), 2) as monto_total    
-FROM transactions
-GROUP BY user_id
-HAVING COUNT(*) > 30 AND sum(amount)
-ORDER BY total_transactions asc;
--- -----------------------------------------------------
-
--- Opcion consulta sencilla con Union (2 tablas)
-SELECT u.name as nombre, u.surname as apellido, count(t.id) as total_transaccions
+-- Opcion consulta sencilla con JOIN
+SELECT u.id,
+	u.name as nombre,
+    u.surname AS apellido,
+    count(t.id) as total_transaccions
 FROM users AS u
 INNER JOIN transactions AS t ON u.id = t.user_id
 GROUP BY u.id, u.name, u.surname
-HAVING COUNT(t.id) > 30;
+HAVING COUNT(t.id) > 30
+ORDER BY total_transaccions DESC;
+
 -- -----------------------------------------------------
  
--- Opcion consulta sencilla con Union (2 tablas) concatenando los nombres
-select concat(NAME, ' ',SURNAME) AS "nombres completos", count(t.id) as total_transaccions   
-from users as u
-inner join transactions as t ON u.id = t.user_id
-group by u.id, u.name, u.surname
-having  count(t.id) >30;
+-- Opcion consulta sencilla con JOIN concatenando los nombres
+SELECT t.user_id,
+	concat(NAME, ' ',SURNAME) AS "nombres completos",
+    count(t.id) AS total_transaccions   
+FROM users AS u
+INNER JOIN transactions AS t ON u.id = t.user_id
+GROUP BY u.id, u.name, u.surname
+HAVING  count(t.id) >30
+ORDER BY total_transaccions DESC;
+
 -- -----------------------------------------------------
 
--- Opcion con subconsulta dentro de INNER JOIN
-SELECT u.name, u.surname, total_transactions
+-- Opcion con subconsulta dentro de INNER JOIN concatenando los nombres
+SELECT t.user_id,
+	concat(NAME, ' ',SURNAME) AS "nombres completos",
+    total_transactions
 FROM users AS u
 INNER JOIN (
-  SELECT user_id, COUNT(*) AS total_transactions
-  FROM transactions
-  GROUP BY user_id
-  HAVING COUNT(*) > 30
-) AS t ON u.id = t.user_id;
+	SELECT user_id, COUNT(*) AS total_transactions
+	FROM transactions
+	GROUP BY user_id
+	HAVING COUNT(*) > 30
+    	) AS t ON u.id = t.user_id
+ORDER BY total_transactions DESC;
+
 -- -----------------------------------------------------
 
--- Opcion con subconsulta con INNER JOIN y con alias 'nombres completos'
-select concat(NAME, ' ', SURNAME) AS "nombres completos", total_transacciones
-from users as u
-inner join (
-select user_id, count(*) as total_transacciones
-from transactions 
-group by user_id
-having count(*) >30
-) t ON u.id = t.user_id;
--- -----------------------------------------------------
-
--- Opcion con subconsulta con INNER JOIN, con alias 'nombres completos' y el monto total de giro en 2 decimales 'format'
-select concat(u.NAME, ' ',u.SURNAME) AS "nombres completos", total_transacciones, monto_total 
-from users as u
-inner join (
-select user_id, count(*) as total_transacciones, format(SUM(t.amount), 'f2') as monto_total
-from transactions as t
-group by user_id
-having count(*) >30
-) as t ON u.id = t.user_id;
+-- Opcion con subconsulta dentro de INNER JOIN, concatenando los nombres y el monto total con 2 decimales
+SELECT t.user_id,
+	concat(u.NAME, ' ',u.SURNAME) AS "nombres completos",
+    total_transacciones,
+    monto_total 
+FROM users AS u
+INNER JOIN (
+	SELECT user_id, count(*) AS total_transacciones,
+		FORMAT (SUM(t.amount), 'f2') AS monto_total
+	FROM transactions AS t
+	GROUP BY user_id
+	HAVING count(*) >30
+	) AS t ON u.id = t.user_id
+ORDER BY total_transacciones DESC;
  
 /*- EJERCICIO 2_____________________________________________________________________
 /*Muestra el promedio de la suma de transacciones por IBAN de las tarjetas de crédito
 en la compañía Donec Ltd. utilizando al menos 2 tablas.*/
 
-SELECT co.company_name, AVG(t.amount) AS promedio_suma_transacciones, cc.iban  -- funciona
+SELECT co.company_name,
+	cc.iban,
+	ROUND(AVG(t.amount),2) AS promedio_suma_transacciones  
 FROM companies co
-inner join transactions t on co.company_id = t.business_id
-inner join credit_cards cc on t.card_id = cc.id
+INNER JOIN transactions t ON co.company_id = t.business_id
+INNER JOIN credit_cards cc ON t.card_id = cc.id
 WHERE co.company_name = 'Donec Ltd'
 GROUP BY co.company_name, cc.iban;
 
@@ -164,7 +192,7 @@ y genera la siguiente consulta:*/
 
 -- se crea una nueva tabla
 CREATE TABLE card_status (
-  id INT AUTO_INCREMENT PRIMARY KEY NOT NULL,
+  id INT PRIMARY KEY NOT NULL,
   card_id VARCHAR(20) NOT NULL,
   status VARCHAR(10) NOT NULL DEFAULT 'active',
   KEY idx_id2 (id),
@@ -174,7 +202,7 @@ CREATE TABLE card_status (
 INSERT INTO card_status (card_id, status)
 SELECT
   t.card_id,
-  CASE
+  CASE			
     WHEN COUNT(t2.id) >= 3 THEN 'declined'
     ELSE 'active'
   END AS status
@@ -197,9 +225,7 @@ SELECT *
 FROM credit_cards
 WHERE expiring_date > DATE_FORMAT(CURRENT_DATE, '%m/%d/%4');
 
-SELECT *
-FROM credit_cards
-WHERE expiring_date > (CURRENT_DATE, '%m/%d/%Y');
+
 
 
 -- ======================= NIVEL 3 =======================
@@ -208,51 +234,55 @@ WHERE expiring_date > (CURRENT_DATE, '%m/%d/%Y');
 /*Necesitamos conocer el número de veces que se ha vendido cada producto.*/
 
 /*Despues de crear tabla intermedia 'transactions_products_1' con sus respectivas vinculaciones
-foraneas e indexaciones, hacemos la importacion de datos 
-procedemos a INDEXAR*/
+foraneas e indexaciones, hacemos la importacion de datos*/
 
-CREATE TABLE transactions_products_2 (
-  id varchar(255) DEFAULT NULL,
-  product_ids int DEFAULT NULL,
+CREATE TABLE transactions_products (
+  id VARCHAR (255) DEFAULT NULL,
+  product_ids INT DEFAULT NULL,
   KEY idx_id1 (id),
   KEY idx_id2 (product_ids),
   CONSTRAINT product_ids FOREIGN KEY (product_ids) REFERENCES products (id),
   CONSTRAINT id FOREIGN KEY (id) REFERENCES transactions (id)
 );
-select * from transactions_products;       -- visualizamos la nueva tabla
-SHOW CREATE TABLE transactions_products_1; -- verificamos codigo
+SELECT * FROM transactions_products;       -- visualizamos la nueva tabla
+SHOW CREATE TABLE transactions_products; -- verificamos codigo
 
-/* consulta usando la tabla products y la tabla intermedia transactions_products*/
-select DISTINCT product_name, count(product_ids) as cantidad_ventas
-from products p
-inner join transactions_products tp on p.id = tp.product_ids
-group by product_name
-order by cantidad_ventas desc;
+/* consulta usando COUNT para el conteo por product_ids*/
+SELECT DISTINCT product_name,
+	count(product_ids) AS cantidad_ventas -- conteo por product_ids
+FROM products p
+INNER JOIN transactions_products tp ON p.id = tp.product_ids
+GROUP BY product_name
+ORDER BY cantidad_ventas DESC;
 
-/* consulta usando la tabla products y la tabla intermedia transactions_products*/
-select DISTINCT product_name, count(tp.id) as cantidad_ventas
-from products p
-inner join transactions_products tp on p.id = tp.product_ids
-group by product_name
-order by cantidad_ventas desc;
+/* consulta usando COUNT para el conteo por id*/
+SELECT DISTINCT product_name,
+	count(tp.id) AS cantidad_ventas -- conteo por id
+FROM products p
+INNER JOIN transactions_products tp ON p.id = tp.product_ids
+GROUP BY product_name
+ORDER BY cantidad_ventas DESC;
 /*NOTA: surge ciertas dudas que bajo el nombre de 1 producto se encuentre varias versiones de
 producto según otras caracteristicas*/
 
 /* En esta consulta intentamos cubrir la sospecha de que existan bajo un mismo nombre varios tipos de producto
 ya sea por tamaño color, por alguna razon lo evidencia en warehouse, de este forma asegurandonos usamos
 DISTINCT y lo agrupamos por id*/
-select distinct p.id, count(product_ids) as conteo_ventas
-from transactions_products as tp
-inner join products as p ON tP.product_ids = p.id
-group by p.id
-order by p.id asc;
+SELECT DISTINCT p.id,
+	count(product_ids) as conteo_ventas
+FROM transactions_products as tp
+INNER JOIN products as p ON tP.product_ids = p.id
+GROUP BY p.id
+ORDER BY p.id ASC;
 
 /*Ahora solo agregamos el nombre para conocer a pesar que se repita, pero se diferencia por el id segun su tipología*/
-select distinct p.id, p.product_name, count(tp.id) as cantidad_ventas
-from products p
-inner join transactions_products tp on p.id = tp.product_ids
-group by id
-order by id asc;
+SELECT DISTINCT p.id,
+	p.product_name,
+	count(tp.id) AS cantidad_ventas
+FROM products p
+INNER JOIN transactions_products tp ON p.id = tp.product_ids
+GROUP BY id
+ORDER BY id ASC;
 
 
 -- <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
