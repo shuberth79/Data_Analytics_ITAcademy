@@ -40,8 +40,8 @@ CREATE TABLE products (
 	product_name VARCHAR(100),
 	price VARCHAR(10),
 	colour VARCHAR(100),
-	weight VARCHAR,
-	warehouse_id VARCHAR(100),
+	weight VARCHAR(100),
+	warehouse_id VARCHAR(100)
 );
 -- -----------------------------------------------------
 
@@ -192,40 +192,37 @@ y genera la siguiente consulta:*/
 
 -- se crea una nueva tabla
 CREATE TABLE card_status (
-  id INT PRIMARY KEY NOT NULL,
-  card_id VARCHAR(20) NOT NULL,
-  status VARCHAR(10) NOT NULL DEFAULT 'active',
-  KEY idx_id2 (id),
-  CONSTRAINT fk_card_reference FOREIGN KEY (card_id) REFERENCES credit_cards (id)  -- Renamed constraint name
-);
+	id INT,
+	card_id VARCHAR(15),
+    status VARCHAR(50));
+
+-- Se ingresa los datos de tablas establecidas condicionandolo con filtros según el pedido
 
 INSERT INTO card_status (card_id, status)
-SELECT
-  t.card_id,
-  CASE			
-    WHEN COUNT(t2.id) >= 3 THEN 'declined'
-    ELSE 'active'
-  END AS status
-FROM transactions t
-INNER JOIN transactions t2 ON t.card_id = t2.card_id
-WHERE t.timestamp >= DATE_SUB(CURRENT_DATE(), INTERVAL 3 DAY)
-GROUP BY t.card_id;
+(WITH transacciones_tarjeta AS (
+SELECT card_id, 
+	timestamp, 
+	declined, 
+	ROW_NUMBER() OVER (PARTITION BY card_id ORDER BY timestamp DESC) AS row_transaction
+FROM transactions)
+SELECT card_id AS numero_tarjeta,
+	CASE 
+		WHEN SUM(declined) <= 3 THEN 'tarjeta activa'
+		ELSE 'tarjeta desactivada'
+	END AS estado tarjeta
+FROM transacciones_tarjeta
+WHERE row_transaction <= 3 
+GROUP BY numero_tarjeta
+HAVING COUNT(numero_tarjeta) = 3);
 
-SELECT cs.id, cc.pan, cs.status
-FROM card_status cs
-INNER JOIN credit_cards cc ON cs.card_id = cc.id;
+SELECT card_id, status FROM card_status;  -- verificando resultados
 
 /* Ejercicio 1_____________________________________________________________________
 /*¿Cuántas tarjetas están activas?*/
-select *
-from credit_cards
-where expiring_date > DATE_FORMAT(CURRENT_DATE,'%m/%d/%Y');
 
-SELECT *
-FROM credit_cards
-WHERE expiring_date > DATE_FORMAT(CURRENT_DATE, '%m/%d/%4');
-
-
+SELECT COUNT(*) AS 'tarjetas activas'
+FROM card_status
+WHERE status ='tarjeta activa';
 
 
 -- ======================= NIVEL 3 =======================
