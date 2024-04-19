@@ -200,22 +200,24 @@ CREATE TABLE card_status (
 
 INSERT INTO card_status (card_id, status)
 (WITH transacciones_tarjeta AS (
-SELECT card_id, 
-	timestamp, 
-	declined, 
-	ROW_NUMBER() OVER (PARTITION BY card_id ORDER BY timestamp DESC) AS row_transaction
+	SELECT card_id, 
+		timestamp, 
+		declined, 
+		ROW_NUMBER() OVER (PARTITION BY card_id ORDER BY timestamp DESC) AS row_transaction
 FROM transactions)
-SELECT card_id AS numero_tarjeta,
+SELECT card_id as numero_tarjeta,
 	CASE 
 		WHEN SUM(declined) <= 3 THEN 'tarjeta activa'
 		ELSE 'tarjeta desactivada'
-	END AS estado tarjeta
+	END AS estado_tarjeta
 FROM transacciones_tarjeta
 WHERE row_transaction <= 3 
 GROUP BY numero_tarjeta
 HAVING COUNT(numero_tarjeta) = 3);
 
-SELECT card_id, status FROM card_status;  -- verificando resultados
+SELECT card_id as numero_tarjeta,
+	status AS estado_tarjeta
+FROM card_status;  -- verificando resultados
 
 /* Ejercicio 1_____________________________________________________________________
 /*¿Cuántas tarjetas están activas?*/
