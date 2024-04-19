@@ -16,34 +16,48 @@ Una tarjeta puede tener múltiples transacciones, pero una transacción solo pue
 La tabla "credit_card" tiene una relación de uno a muchos con la tabla "compañero".
 Una tarjeta puede estar asociada a un solo compañero, pero un compañero puede tener múltiples tarjetas.*/
 
-create table credit_card (
-id VARCHAR(255) PRIMARY KEY,
-iban VARCHAR(45) null,
-pan VARCHAR(45) null,
-pin CHAR(4) null,
-cvv varchar(3) null,
-expiring_date varchar(45) null
+CREATE TABLE credit_card (
+	id VARCHAR(255) PRIMARY KEY,
+	iban VARCHAR(45),
+	pan VARCHAR(45),
+	pin CHAR(4),
+	cvv varchar(3),
+	expiring_date varchar(45)
 );
 
+CREATE INDEX credit_card_id_idx
+	ON transaction(credit_card_id);
+ALTER TABLE credit_card
+	ADD FOREIGN KEY (id) REFERENCES transaction (credit_card_id);
+    
+/* Por temas de compatibilidad de tipo de dedato en la tabla, modificamos expiring_date a varchar
+para lograr con el objetivo de importar sin problemas*/
+
 CREATE TABLE transaction (
-id VARCHAR(255) PRIMARY KEY,
-credit_card_id VARCHAR(255) NULL,
-company_id VARCHAR(255) NULL,
-user_id INT NULL,
-lat DECIMAL(10,6) NULL,
-longitud DECIMAL(10,6) NULL,
-amount DECIMAL(10,2) NOT NULL,
-declined TINYINT(1) NOT NULL DEFAULT 0,
-FOREIGN KEY (credit_card_id) REFERENCES credit_card (id) ON DELETE RESTRICT ON UPDATE CASCADE,
-FOREIGN KEY (user_id) REFERENCES user (id)ON DELETE RESTRICT ON UPDATE CASCADE);
+	id VARCHAR(255) PRIMARY KEY,
+	credit_card_id VARCHAR(255),
+	company_id VARCHAR(255),
+	user_id INT,
+	lat DECIMAL(10,6),
+	longitud DECIMAL(10,6),
+	amount DECIMAL(10,2) NOT NULL,
+	declined TINYINT(1) NOT NULL DEFAULT 0
+);
+    
+ALTER TABLE transaction
+	ADD FOREIGN KEY (credit_card_id) REFERENCES credit_card (id),
+    ADD FOREIGN KEY (user_id) REFERENCES user (id);
+
 
 /*- Ejercicio 2_____________________________________________________________________
 El departamento de Recursos Humanos ha identificado un error en el número de cuenta del usuario
 con ID CcU-2938. La información que debe mostrarse para este registro 
 es: R323456312213576817699999. Recuerda mostrar que el cambio se realizó.*/
 -- Hacemos una consulta para visualizar el IBAN
-SELECT * FROM credit_card
+SELECT *
+FROM credit_card
 WHERE id= "CcU-2938";
+
 -- Modificamos el registro solicitado
 UPDATE credit_card
 SET iban = 'R323456312213576817699999'
@@ -52,14 +66,14 @@ WHERE id = 'CcU-2938';
 
 /*- Ejercicio 3_____________________________________________________________________
 En la tabla "transaction" ingresa un nuevo usuario con la siguiente información:
-- Id: 108B1D1D-5B23-A76C-55EF-C568E49A99DD
-- credit_card_id: CcU-9999
-- company_id:	b-9999
-- user_id: 9999
-- lat: 829.999
-- longitud: -117.999
-- amount:	111.11
-- declined: 0
+	- Id: 108B1D1D-5B23-A76C-55EF-C568E49A99DD
+	- credit_card_id: CcU-9999
+	- company_id:	b-9999
+	- user_id: 9999
+	- lat: 829.999
+	- longitud: -117.999
+	- amount:	111.11
+	- declined: 0
 */
 INSERT into credit_card (id) value ("CcU-9999");
 select * from credit_card where id= "CcU-9999";
@@ -92,8 +106,9 @@ Elimina de la tabla transacción el registro con ID 02C6201E-D90A-1859-B4EE-88D2
 DELETE FROM transaction
 WHERE id = '02C6201E-D90A-1859-B4EE-88D2986D3B02';
 
-select * from transaction
-where id = '02C6201E-D90A-1859-B4EE-88D2986D3B02';
+SELECT *
+FROM transaction
+WHERE id = '02C6201E-D90A-1859-B4EE-88D2986D3B02';
 
 
 /*Ejercicio 2_____________________________________________________________________
@@ -103,24 +118,46 @@ transacciones. Será necesaria que crees una vista llamada VistaMarketing que co
 información: Nombre de la compañía. Teléfono de contacto. País de residencia. Media de compra realizado
 por cada compañía. 
 Presenta la vista creada, ordenando los datos de mayor a menor promedio de compra.*/
-CREATE VIEW VistaMarketing_1 AS
-SELECT company_name, phone, country, promedioCompra pt
+CREATE VIEW VistaMarketing AS
+SELECT company_name,
+    phone,
+    country,
+    promedioCompra pt
 FROM company c
-JOIN (select company_id, avg(amount) as promedioCompra
-from transaction  t
-group by company_id) as promedio_transaction ON c.id = promedio_transaction.company_id
+JOIN (
+	SELECT company_id,
+		avg(amount) as promedioCompra
+	FROM transaction t
+	GROUP BY company_id) AS promedio_transaction ON c.id = promedio_transaction.company_id
 ORDER BY PromedioCompra DESC;
 
+SELECT*
+FROM VistaMarketing;
+
+-- ---------------------------------------
+
+CREATE VIEW VistaMarketing AS
+SELECT company_name AS nombre_compañia,
+    phone AS telefono,
+    country AS pais_sede,
+    ROUND(avg(amount),2) as promedioCompra
+FROM company c
+JOIN transaction t ON c.id = t.company_id
+GROUP BY company_id
+ORDER BY PromedioCompra DESC;
+
+SELECT*
+FROM VistaMarketing;
 
 /*Ejercicio 3_____________________________________________________________________
 Filtra la vista VistaMarketing para mostrar sólo las compañías que tienen su país de residencia en "Germany"*/
 SELECT *
-FROM vistamarketing_1
-WHERE country = 'Germany';
+FROM VistaMarketing
+WHERE pais_sede = 'Germany';
 
-SELECT company_name, country
-FROM vistamarketing_1
-WHERE country = 'Germany';
+SELECT nombre_compañia, pais_sede
+FROM VistaMarketing
+WHERE pais_sede = 'Germany';
 
 
 -- ======================= NIVEL 3 =======================
@@ -176,16 +213,16 @@ rename column email to personal_email;
 -- expire_date VARCHAR(10)
 -- Creamos el foreign key para cambiar la relación con la tabla transaction
 
-alter table credit_card
-change column id id VARCHAR(20) not null,
-change column iban iban VARCHAR(50) null default null,
-change column pin pin VARCHAR(4) null default null,
-change column cvv cvv int null default null,
-change column expiring_date expiring_date VARCHAR(10) null default null;
+ALTER TABLE credit_card
+CHANGE COLUMN id id VARCHAR(20) not null,
+CHANGE COLUMN iban iban VARCHAR(50) null default null,
+CHANGE COLUMN pin pin VARCHAR(4) null default null,
+CHANGE COLUMN cvv cvv int null default null,
+CHANGE COLUMN expiring_date expiring_date VARCHAR(10) null default null;
 
-alter table transactions.credit_card
+ALTER TABLE transactions.credit_card
 ADD CONSTRAINT card_transaction
-foreign key (id) references transactions.transaction (credit_card_id)
+FOREIGN KEY (id) REFERENCES transactions.transaction (credit_card_id)
 ON DELETE RESTRICT -- evita eliminar una tarjeta de crédito en futuras operaciones
 ON UPDATE CASCADE; -- actualiza el ID de la tarjeta de crédito entre la tabla transaction y la tabla credit_card
 
@@ -201,12 +238,22 @@ Asegúrate de incluir información relevante de ambas tablas y utiliza alias par
 Muestra los resultados de la vista, ordena los resultados de forma descendente en función de la variable ID de transacción.*/
 
 CREATE VIEW InformeTecnico AS
-SELECT t.id as id_transaction , name as nombre, surname as apellido, iban, company_name
-FROM transaction t
-INNER JOIN user ON t.user_id = user.id
-INNER JOIN company ON t.company_id = company.id
-INNER JOIN credit_card y ON t.company_id = company.id
-ORDER BY id_transaction desc;
+SELECT transaction.id AS ID_Transaccion,
+		CONCAT(user.name, " ", surname) AS 'Nombres completos',
+		credit_card.iban AS 'Numero Tarjeta',
+		transaction.amount AS 'Monto transaccion',
+		transaction.timestamp AS Fecha,
+		transaction.declined AS Estado,
+		company.company_name AS 'Nombre Compañia',
+		company.country AS 'Pais sede Compañia'
+FROM transaction
+LEFT JOIN user ON transaction.user_id = user.id
+RIGHT JOIN credit_card ON transaction.credit_card_id = credit_card.id
+LEFT JOIN company ON transaction.company_id = company.id
+ORDER BY ID_Transaccion DESC;
+
+SELECT*
+FROM InformeTecnico;
 
 -- <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
