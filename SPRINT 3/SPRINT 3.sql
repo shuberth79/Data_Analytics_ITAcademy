@@ -278,7 +278,7 @@ RIGHT JOIN credit_card ON transaction.credit_card_id = credit_card.id
 LEFT JOIN company ON transaction.company_id = company.id
 ORDER BY ID_Transaccion DESC;
 
-SELECT*
+SELECT *
 FROM InformeTecnico;
 
 -- <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
