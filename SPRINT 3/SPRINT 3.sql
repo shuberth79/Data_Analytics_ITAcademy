@@ -21,8 +21,8 @@ CREATE TABLE credit_card (
 	iban VARCHAR(45),
 	pan VARCHAR(45),
 	pin CHAR(4),
-	cvv varchar(3),
-	expiring_date varchar(45)
+	cvv VARCHAR(3),
+	expiring_date VARCHAR(45)
 );
 
 CREATE INDEX credit_card_id_idx
@@ -75,29 +75,55 @@ En la tabla "transaction" ingresa un nuevo usuario con la siguiente información
 	- amount:	111.11
 	- declined: 0
 */
-INSERT into credit_card (id) value ("CcU-9999");
-select * from credit_card where id= "CcU-9999";
-DELETE FROM credit_card WHERE id= "CcU-9999";
+INSERT INTO credit_card (id) value ("CcU-9999");
 
-INSERT into company (id) value ('b-9999');
-select * from company where id= 'b-9999';
-DELETE FROM company WHERE id= 'b-9999';
+SELECT*
+FROM credit_card 
+WHERE id= "CcU-9999";
 
-INSERT into user (id) value ('9999');
-select * from user where id= '9999';
+DELETE FROM credit_card
+	WHERE id= "CcU-9999";
 
-INSERT into transaction (id,credit_card_id,company_id,user_id,lat,longitud,amount,declined) 
+INSERT INTO company (id) value ('b-9999');
+
+SELECT * 
+FROM company 
+WHERE id= 'b-9999';
+
+DELETE FROM company
+	WHERE id= 'b-9999';
+
+INSERT INTO user (id) value ('9999');
+SELECT * 
+FROM user
+WHERE id= '9999';
+
+INSERT INTO transaction (id,credit_card_id,company_id,user_id,lat,longitude,amount,declined) 
 value ('108B1D1D-5B23-A76C-55EF-C568E49A99DD','CcU-9999','b-9999','9999','829.999','-117.999','111.11','0');
-select * from transaction;
+
+/*ADVERTENCIA:
+Error Code: 1452. Cannot add or update a child row: a foreign key constraint fails
+(`transactions`.`transaction`, CONSTRAINT `transaction_ibfk_1` FOREIGN KEY (`company_id`) REFERENCES `company` (`id`))*/
+
+SET FOREIGN_KEY_CHECKS = 0;
+
+INSERT INTO credit_card(id)
+VALUES ('CcU-9999'); 
+
+SELECT *
+FROM transaction
+WHERE credit_card_id = 'CcU-9999';
 
 
 /*- Ejercicio 4_____________________________________________________________________
 Desde recursos humanos te solicitan eliminar la columna "pan" de la tabla credit_card.
 Recuerda mostrar el cambio realizado.*/
 
-alter table credit_card
-drop column pan;
-select * from credit_card;
+ALTER TABLE credit_card
+DROP COLUMN pan;
+
+SELECT * 
+FROM credit_card;
 
 -- ======================= NIVEL 2 =======================
 
@@ -194,16 +220,16 @@ CREATE TABLE IF NOT EXISTS user (
     );
     
 -- En la tabla Credit_card se crea una nueva columna fecha_actual con un tipo de dato DATE
-alter table credit_card
-add fecha_actual date;
+ALTER TABLE credit_card
+ADD fecha_actual date;
 
 -- En la tabla Company se elimina el campo website.
-alter table company
-drop column website;
+ALTER TABLE company
+DROP COLUMN website;
 
 -- En la tabla user, se cambia el campo o columna email a personal_email.
-alter table user
-rename column email to personal_email;
+ALTER TABLE user
+RENAME COLUMN email to personal_email;
 
 -- En la tabla credit_card cambiamos el tipo de datos de los campos:
 -- id a VARCHAR(20)
