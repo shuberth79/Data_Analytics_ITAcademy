@@ -133,7 +133,7 @@ ORDER BY cantidad_total DESC;
 -- Ejercicio 2_____________________________________________________________________
 -- Indica el nombre de las compañías que realizaron compras el 16 de marzo de 2022,
 -- 28 de febrero de 2022 y 13 de febrero de 2022.
-SELECT DISTINCT company.company_name, DATE(transaction.timestamp)
+SELECT DISTINCT company.company_name, DATE(transaction.timestamp) AS fecha_compra
 FROM transaction
 INNER JOIN company ON transaction.company_id = company.id
 WHERE DATE(timestamp) IN ('2022-03-16%', '2022-02-28%', '2022-02-13%')
