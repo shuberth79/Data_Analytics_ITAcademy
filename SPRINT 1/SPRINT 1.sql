@@ -1,9 +1,12 @@
 	
 -- S P R I N T  1
 -- ======================= NIVEL 1 ======================= 
--- Ejercicio 2_____________________________________________________________________
--- Realiza la siguiente consulta: Debes obtener el nombre, email y país de cada compañía,
--- ordena los datos en función del nombre de las compañías.
+
+/*Ejercicio 2_____________________________________________________________________
+Realiza la siguiente consulta: Debes obtener el nombre, email y país de cada compañía,
+ordena los datos en función del nombre de las compañías*/
+
+-- se usa la base de datos "transactions"
 USE transactions;    
          
 SELECT company_name, email, country
@@ -45,10 +48,10 @@ WHERE c.id = 'b-2354';
     
 -- Ejercicio 6_____________________________________________________________________
 -- Además, ¿tu jefe te solicita que indiques cuál es la compañía con mayor gasto medio?
-SELECT company_id, company_name, round(AVG(t.amount),2) AS gasto_promedio   -- ejemplo de Natalia, 
+SELECT company_id, company_name, round(AVG(t.amount),2) AS gasto_promedio  
 FROM transaction t
 JOIN company c ON t.company_id=c.id
-WHERE declined=0               -- incrementó este filtro
+WHERE declined=0               -- se incrementó este filtro para confirmar
 GROUP BY company_id
 ORDER BY gasto_promedio DESC
 LIMIT 1;
@@ -113,6 +116,7 @@ ORDER BY average_amount DESC;
 
 
 -- ======================= NIVEL 3 ======================= 
+
 -- Ejercicio 1_____________________________________________________________________
 -- Presenta el nombre, teléfono y país de las compañías, junto con la cantidad total gastada,
 -- de aquellas que realizaron transacciones con un gasto comprendido entre 100 y 200 euros.
@@ -133,7 +137,7 @@ ORDER BY cantidad_total DESC;
 -- Ejercicio 2_____________________________________________________________________
 -- Indica el nombre de las compañías que realizaron compras el 16 de marzo de 2022,
 -- 28 de febrero de 2022 y 13 de febrero de 2022.
-SELECT DISTINCT company.company_name, DATE(transaction.timestamp) AS fecha_compra
+SELECT DISTINCT company.company_name, DATE(transaction.timestamp) as fecha_compra
 FROM transaction
 INNER JOIN company ON transaction.company_id = company.id
 WHERE DATE(timestamp) IN ('2022-03-16%', '2022-02-28%', '2022-02-13%')
