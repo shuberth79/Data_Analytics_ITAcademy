@@ -2,6 +2,9 @@
 -- >>>>>>>>>>>>>>>>>>>> S P R I N T  3 <<<<<<<<<<<<<<<<<<<<<<
 
 -- ======================= NIVEL 1 =======================
+
+-- se usa la base de datos "transactions"
+
 /*- EJERCICIO 1_____________________________________________________________________
 Tu tarea es diseñar y crear una tabla llamada "credit_card" que almacene detalles 
 cruciales sobre las tarjetas de crédito. La nueva tabla debe ser capaz de identificar 
@@ -152,36 +155,36 @@ SELECT company_name,
 FROM company c
 JOIN (
 	SELECT company_id,
-		avg(amount) as promedioCompra
+		AVG(amount) AS promedioCompra
 	FROM transaction t
-	GROUP BY company_id) AS promedio_transaction ON c.id = promedio_transaction.company_id
-ORDER BY PromedioCompra DESC;
-
+	GROUP BY company_id) AS promedio_transaction ON c.id = promedio_transaction.company_id;
+    
+    
 SELECT*
-FROM VistaMarketing;
-
+FROM VistaMarketing
+ORDER BY PromedioCompra DESC;
 -- ---------------------------------------
 
 CREATE VIEW VistaMarketing AS
 SELECT company_name AS nombre_compañia,
     phone AS telefono,
     country AS pais_sede,
-    ROUND(avg(amount),2) as promedioCompra
+    ROUND(AVG(amount),2) AS promedioCompra
 FROM company c
 JOIN transaction t ON c.id = t.company_id
-GROUP BY company_id
-ORDER BY PromedioCompra DESC;
+GROUP BY company_id;
 
-SELECT*
-FROM VistaMarketing;
+SELECT *                   
+FROM VistaMarketing
+ORDER BY PromedioCompra DESC;
 
 /*Ejercicio 3_____________________________________________________________________
 Filtra la vista VistaMarketing para mostrar sólo las compañías que tienen su país de residencia en "Germany"*/
-SELECT *
+SELECT *                    -- hacemos la impresión de prueba
 FROM VistaMarketing
 WHERE pais_sede = 'Germany';
 
-SELECT nombre_compañia, pais_sede
+SELECT nombre_compañia, pais_sede   -- limpiamos la tabla conforme el pedido, impresión final
 FROM VistaMarketing
 WHERE pais_sede = 'Germany';
 
@@ -221,7 +224,7 @@ CREATE TABLE IF NOT EXISTS user (
     
 -- En la tabla Credit_card se crea una nueva columna fecha_actual con un tipo de dato DATE
 ALTER TABLE credit_card
-ADD fecha_actual date;
+ADD fecha_actual DATE;
 
 -- En la tabla Company se elimina el campo website.
 ALTER TABLE company
@@ -229,11 +232,11 @@ DROP COLUMN website;
 
 -- En la tabla user, se cambia el campo o columna email a personal_email.
 ALTER TABLE user
-RENAME COLUMN email to personal_email;
+RENAME COLUMN email TO personal_email;
 
 -- En la tabla credit_card cambiamos el tipo de datos de los campos:
 -- id a VARCHAR(20)
--- iban VARCHAR(50)
+-- iban VARCHAR(45)
 -- pin VARCHAR(4)
 -- cvv INT
 -- expire_date VARCHAR(10)
@@ -241,7 +244,7 @@ RENAME COLUMN email to personal_email;
 
 ALTER TABLE credit_card
 CHANGE COLUMN id id VARCHAR(20) not null,
-CHANGE COLUMN iban iban VARCHAR(50) null default null,
+CHANGE COLUMN iban iban VARCHAR(45) null default null,
 CHANGE COLUMN pin pin VARCHAR(4) null default null,
 CHANGE COLUMN cvv cvv int null default null,
 CHANGE COLUMN expiring_date expiring_date VARCHAR(10) null default null;
@@ -275,11 +278,12 @@ SELECT transaction.id AS ID_Transaccion,
 FROM transaction
 LEFT JOIN user ON transaction.user_id = user.id
 RIGHT JOIN credit_card ON transaction.credit_card_id = credit_card.id
-LEFT JOIN company ON transaction.company_id = company.id
-ORDER BY ID_Transaccion DESC;
+LEFT JOIN company ON transaction.company_id = company.id;
+
 
 SELECT *
-FROM InformeTecnico;
+FROM InformeTecnico
+ORDER BY ID_Transaccion DESC;
 
 -- <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
