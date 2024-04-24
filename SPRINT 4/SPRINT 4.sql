@@ -11,42 +11,39 @@ siguientes consultas:*/
 create database db_SPRINT4;
 
 CREATE TABLE company (
-	id VARCHAR(20) PRIMARY KEY not null,
-	company_name VARCHAR(255) null,
-	phone VARCHAR(15) null,
-	email VARCHAR(150) null,
-	country VARCHAR(150) null,
-	website VARCHAR(150) null
-);
+	id VARCHAR(20) PRIMARY KEY,
+	company_name VARCHAR(255),
+	phone VARCHAR(15),
+	email VARCHAR(150),
+	country VARCHAR(150),
+	website VARCHAR(150));
 
 -- -----------------------------------------------------
 
 create table credit_card (
-	id VARCHAR(20) PRIMARY KEY not null,
+	id VARCHAR(20) PRIMARY KEY,
 	user_id VARCHAR(20),
-	iban VARCHAR(255) null,
-	pan VARCHAR(45) null,
-	pin CHAR(4) null,
-	cvv CHAR(3) null,
+	iban VARCHAR(255),
+	pan VARCHAR(45),
+	pin CHAR(4),
+	cvv CHAR(3),
 	track1 VARCHAR(255),
 	track2 VARCHAR(255),
-	expiring_date varchar(255) null
-);
+	expiring_date varchar(255));
 
 -- -----------------------------------------------------
 
 CREATE TABLE products (
-	id INT PRIMARY KEY not null,
+	id INT PRIMARY KEY,
 	product_name VARCHAR(100),
 	price VARCHAR(10),
 	colour VARCHAR(100),
 	weight VARCHAR(100),
-	warehouse_id VARCHAR(100)
-);
+	warehouse_id VARCHAR(100));
 -- -----------------------------------------------------
 
 CREATE TABLE users (
-	id INT PRIMARY KEY not null,
+	id INT PRIMARY KEY,
 	name VARCHAR(100),
 	surname VARCHAR(100),
 	phone VARCHAR(150),
@@ -55,65 +52,60 @@ CREATE TABLE users (
 	country VARCHAR(150),
 	city VARCHAR (150),
 	postal_code VARCHAR(100),
-	address VARCHAR(255)
-);
+	address VARCHAR(255));
 -- -----------------------------------------------------
 
 CREATE TABLE transactions (
-	id VARCHAR(255) PRIMARY KEY NOT NULL,
+	id VARCHAR(255) PRIMARY KEY,
 	card_id VARCHAR(20),
 	bussiness_id VARCHAR(150),
-	timestamp varchar(150) NOT NULL, 
-	amount DECIMAL(10,2) NOT NULL,
-	declined TINYINT(1) NOT NULL DEFAULT 0,
-	product_ids VARCHAR(20) NOT NULL,
+	timestamp varchar(150), 
+	amount DECIMAL(10,2),
+	declined TINYINT(1) DEFAULT 0,
+	product_ids VARCHAR(20),
 	user_id INT,
 	lat VARCHAR(50),
-	longitude VARCHAR(50)
-);
+	longitude VARCHAR(50));
 
 /*conforme la elaboración de todas las tablas necesarias, se planifica as relaciones
 entre ellas, se establece la indexación con sus respectivos foreign key y evitarnos
 posibles inconvenientes */
+
 CREATE INDEX idx_company
 	ON transaction(business_id);
-ALTER TABLE company
-	ADD FOREIGN KEY (id) REFERENCES transactions(business_id);
-
+    
 CREATE INDEX idx_credit_card
 	ON transaction(card_id);
-ALTER TABLE credit_card
-	ADD FOREIGN KEY (id) REFERENCES transactions(card_id);
-
+    
 CREATE INDEX idx_users
 	ON transaction(user_id);
+    
+CREATE INDEX idx_products ON transaction(product_ids);
+
+ALTER TABLE company
+	ADD FOREIGN KEY (id) REFERENCES transactions(business_id);
+    
+ALTER TABLE credit_card
+	ADD FOREIGN KEY (id) REFERENCES transactions(card_id);
+    
 ALTER TABLE users
 	ADD FOREIGN KEY (id) REFERENCES transactions(user_id);
-
-CREATE INDEX idx_products
-	ON transaction(product_ids);
-ALTER TABLE products
-	ADD FOREIGN KEY (id) REFERENCES transactions(product_ids);
 
 
 /*- EJERCICIO 1_____________________________________________________________________
 Realiza una subconsulta que muestre a todos los usuarios con más de 30 transacciones
 utilizando al menos 2 tablas..*/
-SELECT id,
-	concat(NAME, ' ',SURNAME) AS "nombres completos",(
-		SELECT count(transactions.id)
-        FROM transactions
-        WHERE users.id = transactions.user_id) AS transacciones
-FROM users
-WHERE id IN (
-	SELECT user_id
-    FROM transactions
-    GROUP BY user_id
-    HAVING COUNT(id) > 30)
-ORDER BY transacciones DESC;
+SELECT u.*,                          -- Consulta definitiva como respuesta de la tarea
+		(SELECT count(t.id)
+        FROM transactions t
+        WHERE u.id = t.user_id) AS cantidad_transacciones
+FROM users u
+GROUP BY id
+HAVING cantidad_transacciones > 30;
+
 
 /*Como una buena practica en la profundizacion en el dominio del manejo del lenguaje,
-desgloso algunas opciones*/ 
+desgloso algunas opciones con JOIN*/ 
 
 -- Opcion consulta sencilla con JOIN
 SELECT u.id,
@@ -181,7 +173,7 @@ FROM companies co
 INNER JOIN transactions t ON co.company_id = t.business_id
 INNER JOIN credit_cards cc ON t.card_id = cc.id
 WHERE co.company_name = 'Donec Ltd'
-GROUP BY co.company_name, cc.iban;
+GROUP BY cc.iban;
 
 
 -- ======================= NIVEL 2 =======================
@@ -192,14 +184,13 @@ y genera la siguiente consulta:*/
 
 -- se crea una nueva tabla
 CREATE TABLE card_status (
-	id INT,
 	card_id VARCHAR(15),
     status VARCHAR(50));
 
 -- Se ingresa los datos de tablas establecidas condicionandolo con filtros según el pedido
 
 INSERT INTO card_status (card_id, status)
-(WITH transacciones_tarjeta AS (
+WITH transacciones_tarjeta AS (
 	SELECT card_id, 
 		timestamp, 
 		declined, 
@@ -207,13 +198,12 @@ INSERT INTO card_status (card_id, status)
 FROM transactions)
 SELECT card_id as numero_tarjeta,
 	CASE 
-		WHEN SUM(declined) <= 3 THEN 'tarjeta activa'
+		WHEN SUM(declined) <= 2 THEN 'tarjeta activa'
 		ELSE 'tarjeta desactivada'
 	END AS estado_tarjeta
 FROM transacciones_tarjeta
 WHERE row_transaction <= 3 
-GROUP BY numero_tarjeta
-HAVING COUNT(numero_tarjeta) = 3);
+GROUP BY numero_tarjeta;
 
 SELECT card_id as numero_tarjeta,
 	status AS estado_tarjeta
@@ -235,15 +225,21 @@ WHERE status ='tarjeta activa';
 /*Despues de crear tabla intermedia 'transactions_products_1' con sus respectivas vinculaciones
 foraneas e indexaciones, hacemos la importacion de datos*/
 
-CREATE TABLE transactions_products (
-  id VARCHAR (255) DEFAULT NULL,
-  product_ids INT DEFAULT NULL,
-  KEY idx_id1 (id),
-  KEY idx_id2 (product_ids),
-  CONSTRAINT product_ids FOREIGN KEY (product_ids) REFERENCES products (id),
-  CONSTRAINT id FOREIGN KEY (id) REFERENCES transactions (id)
-);
-SELECT * FROM transactions_products;       -- visualizamos la nueva tabla
+CREATE TABLE transactions_products_1 (
+  id VARCHAR (255),
+  product_ids INT);
+
+LOAD DATA LOCAL INFILE      -- cargamos e introducimos la data desde el archivo csv
+'D:\SH ESPAÑA\CURSOS - CAPACITACIÓN\IT ACADEMY\DATA ANALYTICS\SPRINT 4\DESCARGADOS\transactions_products.csv'
+INTO TABLE transactions_products
+FIELDS TERMINATED BY  ","
+ENCLOSED BY "'"
+LINES TERMINATED BY ";"
+IGNORE 1 ROWS;
+
+SELECT * 
+FROM transactions_products;       -- visualizamos la nueva tabla
+
 SHOW CREATE TABLE transactions_products; -- verificamos codigo
 
 /* consulta usando COUNT para el conteo por product_ids*/
