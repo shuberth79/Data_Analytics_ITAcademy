@@ -55,7 +55,7 @@ CREATE TABLE users (
 	address VARCHAR(255));
 -- -----------------------------------------------------
 
-CREATE TABLE transactions (
+CREATE TABLE transactions8 (
 	id VARCHAR(255) PRIMARY KEY,
 	card_id VARCHAR(20),
 	bussiness_id VARCHAR(150),
@@ -73,19 +73,20 @@ facilitados venían con ciertas limitaciones que impedian la normal importación
 detalles loadexplicaremos a posterior*/
 
 LOAD DATA LOCAL INFILE      
-'D:\SH ESPAÑA\CURSOS - CAPACITACIÓN\IT ACADEMY\DATA ANALYTICS\SPRINT 4\DESCARGADOS\transactions.csv'
-INTO TABLE transactions
+'C:\SH ESPAÑA\CURSOS - CAPACITACIÓN\IT ACADEMY\DATA ANALYTICS\SPRINT 4\DESCARGADOS\transactions.csv'
+INTO TABLE transactions8
 FIELDS TERMINATED BY  ","
 ENCLOSED BY "'"
-LINES TERMINATED BY ";"
+LINES TERMINATED BY '\r\n'
 IGNORE 1 ROWS;
 
+
 LOAD DATA LOCAL INFILE      
-'D:\SH ESPAÑA\CURSOS - CAPACITACIÓN\IT ACADEMY\DATA ANALYTICS\SPRINT 4\DESCARGADOS\companies.csv'
+'C:\SH ESPAÑA\CURSOS - CAPACITACIÓN\IT ACADEMY\DATA ANALYTICS\SPRINT 4\DESCARGADOS\companies.csv'
 INTO TABLE companies
 FIELDS TERMINATED BY  ","
 ENCLOSED BY "'"
-LINES TERMINATED BY ";"
+LINES TERMINATED BY '\r\n'
 IGNORE 1 ROWS;
 
 /*
@@ -94,27 +95,27 @@ Para la usual importación de los datos de usuarios provenientes de los archivos
 desde ahi importaremos el contenido de los 3 archivos. 
 */
 LOAD DATA LOCAL INFILE      
-'D:\SH ESPAÑA\CURSOS - CAPACITACIÓN\IT ACADEMY\DATA ANALYTICS\SPRINT 4\DESCARGADOS\users_ca.csv'
+'C:\SH ESPAÑA\CURSOS - CAPACITACIÓN\IT ACADEMY\DATA ANALYTICS\SPRINT 4\DESCARGADOS\users_ca.csv'
 INTO TABLE users
 FIELDS TERMINATED BY  ","
 ENCLOSED BY "'"
-LINES TERMINATED BY ";"
+LINES TERMINATED BY '\r\n'
 IGNORE 1 ROWS;
 
 LOAD DATA LOCAL INFILE      
-'D:\SH ESPAÑA\CURSOS - CAPACITACIÓN\IT ACADEMY\DATA ANALYTICS\SPRINT 4\DESCARGADOS\users_uk.csv'
+'C:\SH ESPAÑA\CURSOS - CAPACITACIÓN\IT ACADEMY\DATA ANALYTICS\SPRINT 4\DESCARGADOS\users_uk.csv'
 INTO TABLE users
 FIELDS TERMINATED BY  ","
 ENCLOSED BY "'"
-LINES TERMINATED BY ";"
+LINES TERMINATED BY '\r\n'
 IGNORE 1 ROWS;
 
 LOAD DATA LOCAL INFILE      
-'D:\SH ESPAÑA\CURSOS - CAPACITACIÓN\IT ACADEMY\DATA ANALYTICS\SPRINT 4\DESCARGADOS\users_usa.csv'
+'C:\SH ESPAÑA\CURSOS - CAPACITACIÓN\IT ACADEMY\DATA ANALYTICS\SPRINT 4\DESCARGADOS\users_usa.csv'
 INTO TABLE users
 FIELDS TERMINATED BY  ","
 ENCLOSED BY "'"
-LINES TERMINATED BY ";"
+LINES TERMINATED BY '\r\n'
 IGNORE 1 ROWS;
 
 /*
@@ -126,11 +127,11 @@ o consulta. Se procede a extraerlo, osea limpiar la data para que se mas legible
 tipificarlos en la tabla, de VARCHAR(10) a DECIMAL(5,2)
 */
 LOAD DATA LOCAL INFILE      
-'D:\SH ESPAÑA\CURSOS - CAPACITACIÓN\IT ACADEMY\DATA ANALYTICS\SPRINT 4\DESCARGADOS\products.csv'
+'C:\SH ESPAÑA\CURSOS - CAPACITACIÓN\IT ACADEMY\DATA ANALYTICS\SPRINT 4\DESCARGADOS\products.csv'
 INTO TABLE products
 FIELDS TERMINATED BY  ","
 ENCLOSED BY "'"
-LINES TERMINATED BY ";"
+LINES TERMINATED BY '\r\n'
 IGNORE 1 ROWS
 (id, product_name, colour, @price, weight, warehouse_id)
 SET price = REPLACE(@price, '$','');  -- Se configura la columna 'price' para extraer el signo '$'
@@ -139,11 +140,11 @@ De igual forma, como un camino alternativo, en el proceso de importacion a la ta
 conveniencia las fechas registradas 
 */
 LOAD DATA LOCAL INFILE      
-'D:\SH ESPAÑA\CURSOS - CAPACITACIÓN\IT ACADEMY\DATA ANALYTICS\SPRINT 4\DESCARGADOS\credit_cards.csv'
+'C:\SH ESPAÑA\CURSOS - CAPACITACIÓN\IT ACADEMY\DATA ANALYTICS\SPRINT 4\DESCARGADOS\credit_cards.csv'
 INTO TABLE credit_card
 FIELDS TERMINATED BY  ","
 ENCLOSED BY "'"
-LINES TERMINATED BY ";"
+LINES TERMINATED BY '\r\n'
 IGNORE 1 ROWS
 (id, user_id, iban, pan, pin, cvv, track1, track2, @expiring_date)
 SET expiring_date = STR_TO_DATE(@expiring_date,'%m,%d,%y'); 
@@ -170,8 +171,9 @@ ALTER TABLE company
 ALTER TABLE credit_card
 	ADD FOREIGN KEY (id) REFERENCES transactions(card_id);
     
-ALTER TABLE users
+ALTER TABLE products
 	ADD FOREIGN KEY (id) REFERENCES transactions(user_id);
+    
 
 /*- EJERCICIO 1_____________________________________________________________________
 Realiza una subconsulta que muestre a todos los usuarios con más de 30 transacciones
@@ -312,7 +314,7 @@ CREATE TABLE transactions_products_1 (
 
 LOAD DATA LOCAL INFILE      -- cargamos e introducimos la data desde el archivo csv
 'D:\SH ESPAÑA\CURSOS - CAPACITACIÓN\IT ACADEMY\DATA ANALYTICS\SPRINT 4\DESCARGADOS\transactions_products.csv'
-INTO TABLE transactions_products8
+INTO TABLE transactions_products
 FIELDS TERMINATED BY  ","
 ENCLOSED BY "'"
 LINES TERMINATED BY ";"
