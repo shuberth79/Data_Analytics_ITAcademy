@@ -161,7 +161,8 @@ CREATE INDEX idx_credit_card
 CREATE INDEX idx_users
 	ON transaction(user_id);
     
-CREATE INDEX idx_products ON transaction(product_ids);
+CREATE INDEX idx_products
+	 ON transaction(product_ids);
 
 ALTER TABLE company
 	ADD FOREIGN KEY (id) REFERENCES transactions(business_id);
