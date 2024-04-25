@@ -68,13 +68,13 @@ CREATE TABLE transactions8 (
 	longitude VARCHAR(50));
 
 /*cargamos e introducimos la data desde los archivo csv facilitados en el ejercicio
-de tal modo que copamos las tablas de data a procesar. En algunos casos los archivos 
-facilitados venían con ciertas limitaciones que impedian la normal importación, estos
-detalles loadexplicaremos a posterior*/
+usamos LOAD DATA LOCAL INFILE de tal modo que copamos las tablas de data a procesar.
+En algunos casos los archivos facilitados venían con ciertas limitaciones que impedian
+la normal importación, estos detalles lo explicaremos a posterior*/
 
 LOAD DATA LOCAL INFILE      
-'C:\SH ESPAÑA\CURSOS - CAPACITACIÓN\IT ACADEMY\DATA ANALYTICS\SPRINT 4\DESCARGADOS\transactions.csv'
-INTO TABLE transactions8
+'C:/transactions.csv'
+INTO TABLE transactions
 FIELDS TERMINATED BY ','
 ENCLOSED BY "'"
 LINES TERMINATED BY '\r\n'
@@ -82,7 +82,7 @@ IGNORE 1 ROWS;
 
 
 LOAD DATA LOCAL INFILE      
-'C:\SH ESPAÑA\CURSOS - CAPACITACIÓN\IT ACADEMY\DATA ANALYTICS\SPRINT 4\DESCARGADOS\companies.csv'
+'C:/companies.csv'
 INTO TABLE companies
 FIELDS TERMINATED BY ','
 ENCLOSED BY "'"
@@ -95,7 +95,7 @@ Para la usual importación de los datos de usuarios provenientes de los archivos
 desde ahi importaremos el contenido de los 3 archivos. 
 */
 LOAD DATA LOCAL INFILE      
-'C:\SH ESPAÑA\CURSOS - CAPACITACIÓN\IT ACADEMY\DATA ANALYTICS\SPRINT 4\DESCARGADOS\users_ca.csv'
+'C:/users_ca.csv'
 INTO TABLE users
 FIELDS TERMINATED BY ','
 ENCLOSED BY "'"
@@ -103,7 +103,7 @@ LINES TERMINATED BY '\r\n'
 IGNORE 1 ROWS;
 
 LOAD DATA LOCAL INFILE      
-'C:\SH ESPAÑA\CURSOS - CAPACITACIÓN\IT ACADEMY\DATA ANALYTICS\SPRINT 4\DESCARGADOS\users_uk.csv'
+'C:/users_uk.csv'
 INTO TABLE users
 FIELDS TERMINATED BY ','
 ENCLOSED BY "'"
@@ -111,7 +111,7 @@ LINES TERMINATED BY '\r\n'
 IGNORE 1 ROWS;
 
 LOAD DATA LOCAL INFILE      
-'C:\SH ESPAÑA\CURSOS - CAPACITACIÓN\IT ACADEMY\DATA ANALYTICS\SPRINT 4\DESCARGADOS\users_usa.csv'
+'C:/users_usa.csv'
 INTO TABLE users
 FIELDS TERMINATED BY ','
 ENCLOSED BY "'"
@@ -127,7 +127,7 @@ o consulta. Se procede a extraerlo, osea limpiar la data para que se mas legible
 tipificarlos en la tabla, de VARCHAR(10) a DECIMAL(5,2)
 */
 LOAD DATA LOCAL INFILE      
-'C:\SH ESPAÑA\CURSOS - CAPACITACIÓN\IT ACADEMY\DATA ANALYTICS\SPRINT 4\DESCARGADOS\products.csv'
+'C:/products.csv'
 INTO TABLE products
 FIELDS TERMINATED BY ','
 ENCLOSED BY "'"
@@ -140,7 +140,7 @@ De igual forma, como un camino alternativo, en el proceso de importacion a la ta
 conveniencia las fechas registradas 
 */
 LOAD DATA LOCAL INFILE      
-'C:\SH ESPAÑA\CURSOS - CAPACITACIÓN\IT ACADEMY\DATA ANALYTICS\SPRINT 4\DESCARGADOS\credit_cards.csv'
+'C:/credit_cards.csv'
 INTO TABLE credit_card
 FIELDS TERMINATED BY ','
 ENCLOSED BY "'"
@@ -313,7 +313,7 @@ CREATE TABLE transactions_products_1 (
   product_ids INT);
 
 LOAD DATA LOCAL INFILE      -- cargamos e introducimos la data desde el archivo csv
-'D:\SH ESPAÑA\CURSOS - CAPACITACIÓN\IT ACADEMY\DATA ANALYTICS\SPRINT 4\DESCARGADOS\transactions_products.csv'
+'C:/transactions_products.csv'
 INTO TABLE transactions_products
 FIELDS TERMINATED BY  ","
 ENCLOSED BY "'"
