@@ -162,16 +162,13 @@ CREATE INDEX idx_credit_card
 CREATE INDEX idx_users
 	ON transaction(user_id);
     
-CREATE INDEX idx_products
-	 ON transaction(product_ids);
-
 ALTER TABLE company
 	ADD FOREIGN KEY (id) REFERENCES transactions(business_id);
     
 ALTER TABLE credit_card
 	ADD FOREIGN KEY (id) REFERENCES transactions(card_id);
     
-ALTER TABLE products
+ALTER TABLE users
 	ADD FOREIGN KEY (id) REFERENCES transactions(user_id);
     
 
@@ -292,6 +289,7 @@ SELECT card_id as numero_tarjeta,
 	status AS estado_tarjeta
 FROM card_status;  -- verificando resultados
 
+
 /* Ejercicio 1_____________________________________________________________________
 /*¿Cuántas tarjetas están activas?*/
 
@@ -308,7 +306,7 @@ WHERE status ='tarjeta activa';
 /*Despues de crear tabla intermedia 'transactions_products_1' con sus respectivas vinculaciones
 foraneas e indexaciones, hacemos la importacion de datos*/
 
-CREATE TABLE transactions_products_1 (
+CREATE TABLE transactions_products (
   id VARCHAR (255),
   product_ids INT);
 
@@ -319,6 +317,14 @@ FIELDS TERMINATED BY  ","
 ENCLOSED BY "'"
 LINES TERMINATED BY ";"
 IGNORE 1 ROWS;
+
+-- --------------------------------------------------------------------
+ALTER TABLE transactions_products
+	ADD INDEX product_ids_idx (product_ids);
+
+ALTER TABLE transactions_products
+	ADD FOREIGN KEY (product_ids) REFERENCES products(id);
+
 
 SELECT * 
 FROM transactions_products;       -- visualizamos la nueva tabla
@@ -356,17 +362,43 @@ ORDER BY p.id ASC;
 /*Ahora solo agregamos el nombre para conocer a pesar que se repita, pero se diferencia por el id segun su tipología*/
 SELECT DISTINCT p.id,
 	p.product_name,
-	count(tp.id) AS cantidad_ventas
+	count(tp.product_ids) AS cantidad_ventas
 FROM products p
 INNER JOIN transactions_products tp ON p.id = tp.product_ids
 GROUP BY id
 ORDER BY id ASC;
 
 
--- <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+-- <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< 2DO METODO 
+SELECT t.id, SUBSTRING_INDEX(SUBSTRING_INDEX(t.product_ids, ',', n.n), ',', -1) as product_id
+FROM (
+  SELECT 1 as n UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 
+    ) n
+JOIN transactions t
+	ON n.n <= 1 + (LENGTH(t.product_ids) - LENGTH(REPLACE(t.product_ids, ',', '')))
+ORDER BY t.id, n.n;
+-- Exporto esta tabla, luego la importo por Wisard como tabla 'transactions_products '
 
+SELECT *
+	FROM transactions_products;
 
+-- En la importacion el 'id' ingresa como tipo de datos TEXT,
+--  lo cambiamos a tipo de dato VARCHAR(255)
+ALTER TABLE transactions_products
+	CHANGE COLUMN id id VARCHAR(255);
 
+-- agregamos el foreing key a products
+ALTER TABLE transactions_products
+	ADD INDEX product_id_idx (product_ids ASC);
 
+-- agregamos foreign key de productos
+ALTER TABLE transactions_products
+	ADD FOREIGN KEY (product_ids) REFERENCES products (id);
 
-
+-- agregamos foreign key de transactions
+ALTER TABLE transactions_products
+	ADD FOREIGN KEY (id) REFERENCES transactions(id);
+    
+    
+    
+    
